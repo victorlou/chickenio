@@ -18,7 +18,7 @@
             Temperature #1
           </v-card-title>
           <v-card-subtitle>
-            Insert temperature chart here
+            <TemperatureChart1 />
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -28,7 +28,7 @@
             Temperature #2
           </v-card-title>
           <v-card-subtitle>
-            Insert temperature chart here
+            <TemperatureChart1 />
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -37,8 +37,14 @@
 </template>
 
 <script>
+import TemperatureChart1 from '../../components/Charts/TemperatureChart1'
+// import TemperatureChart2 from "../../components/Charts/TemperatureChart2";
 export default {
-  name: "SensorsReport"
+  name: "SensorsReport",
+  components: {
+    TemperatureChart1,
+    // TemperatureChart2,
+  }
 }
 </script>
 

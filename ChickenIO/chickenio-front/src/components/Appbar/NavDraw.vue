@@ -5,6 +5,7 @@
       dark
       permanent
   >
+    <h1>ChickenIO</h1>
     <v-list>
       <v-list-item
           v-for="item in items"

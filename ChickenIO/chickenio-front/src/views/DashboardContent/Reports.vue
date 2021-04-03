@@ -76,13 +76,12 @@
       <v-col>
         <v-card>
           <v-card-title>
-            <h4>Chart Example</h4>
+            <h4>Chickens</h4>
           </v-card-title>
           <v-card-subtitle>
-            Some chart
+            <ChickenTable />
           </v-card-subtitle>
           <v-card-text>
-            <h2>vue chart js não ta funcionando por algum motivo</h2>
           </v-card-text>
         </v-card>
       </v-col>
@@ -93,10 +92,14 @@
 <script>
 import WeightHistoryChart from "../../components/Charts/WeightHistoryChart";
 // import LineChartContainer from "../../components/Charts/LineChartContainer.vue";
+import ChickenTable from "../../components/ChickenTable"
 
 export default {
   name: 'Charts',
-  components: {WeightHistoryChart},
+  components: {
+    WeightHistoryChart,
+    ChickenTable,
+  },
   data() {
     return {
       chicken: {

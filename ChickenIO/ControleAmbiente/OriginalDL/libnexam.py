@@ -2,16 +2,9 @@
 # vim: expandtab ts=4 sw=4
 # Inspired by http://www.raspberrypi-spy.co.uk/2015/03/bh1750fvi-i2c-digital-light-intensity-sensor/
 
+
 import smbus
 import time
-import Adafruit_DHT
-import requests
-import os
-import shutil
-from threading import Thread
-from datetime import datetime
-from google.cloud import storage
-from firebase_admin import credentials, initialize_app, storage
 
 class BH1750():
     """ Implement BH1750 communication. """
@@ -121,63 +114,23 @@ class BH1750():
     def measure_high_res2(self, additional_delay=0):
         return self.do_measurement(self.ONE_TIME_HIGH_RES_MODE_2, additional_delay)
 
-url = 'http://192.168.0.119:3000/environmental-log/store'
 
-cred = credentials.Certificate('chickenio-309621-27a35130195e.json')
-initialize_app(cred, {'storageBucket': 'chickenio.appspot.com'})
-bucket = storage.bucket()
+def main():
 
-##bus = smbus.SMBus(0) # Rev 1 Pi uses 0
-#bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
-#DLsensor = BH1750(bus)
-DHTsensor = Adafruit_DHT.DHT22
-# Example using a Raspberry Pi with DHT sensor
-# connected to GPIO23.
-DHTpin = 4
+    #bus = smbus.SMBus(0) # Rev 1 Pi uses 0
+    bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
+    sensor = BH1750(bus)
 
-delay = 5#3600
+    while True:
+        print "Sensitivity: {:d}".format(sensor.mtreg)
+        for measurefunc, name in [(sensor.measure_low_res, "Low Res "),
+                                  (sensor.measure_high_res, "HighRes "),
+                                  (sensor.measure_high_res2, "HighRes2")]:
+            print "{} Light Level : {:3.2f} lx".format(name, measurefunc())
+        print "--------"
+        sensor.set_sensitivity((sensor.mtreg + 10) % 255)
+        time.sleep(1)
 
-def single_frame(name='img_'+datetime.now().strftime('%Y-%m-%d_%H:%M:%S')+'.jpg', quality=25):
-    arg = 'raspistill -n -q %s -o images/%s' % (quality, name)
-    Thread(target=os.system, args=([arg])).start()
 
-#funcao que atualizara as informacoes do ambiente na hora atual
-def dbUpdate(now, lumi, temp, humi, file):
-    #image = bucket.blob(file)
-    #image.upload_from_filename(filename='images/'+file)
-    #image.make_public()
-    #print("your file url", image.public_url)
-    #folder = 'images'
-    #for filename in os.listdir(folder):
-    #    file_path = os.path.join(folder, filename)
-    #    try:
-    #        if os.path.isfile(file_path) or os.path.islink(file_path):
-    #            os.unlink(file_path)
-    #        elif os.path.isdir(file_path):
-    #            shutil.rmtree(file_path)
-    #    except Exception as e:
-    #        print('Failed to delete %s. Reason: %s' % (file_path, e))
-
-    json = {'timestamp':now.strftime("%Y-%m-%d %H:%M:%S"),'light':"%.2f" % lumi,'temperature':"%.2f" % temp,'air_humidity':"%.2f" % humi}
-    print(json)
-    #pkg = requests.post(url, data = json)
-    return "Database Disconnected"#pkg.text
-
-while True:
-    now = datetime.now()
-    #sens = DLsensor.mtreg
-    #hr = DLsensor.measure_high_res()
-    #hr2 = DLsensor.measure_high_res2()
-    lumi = 1#DLsensor.measure_low_res()
-    #DLsensor.set_sensitivity((DLsensor.mtreg + 10) % 255)
-
-    # Try to grab a sensor reading.  Use the read_retry method which will retry up
-    # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
-    humi, temp = Adafruit_DHT.read_retry(DHTsensor, DHTpin)
-
-    filename = 'img_'+now.strftime('%Y-%m-%d_%H:%M:%S')+'.jpg'
-    single_frame(filename, 10)
-    time.sleep(10)
-    
-    print(dbUpdate(now, lumi, temp, humi, filename))
-    time.sleep(delay)
+if __name__=="__main__":
+    main()

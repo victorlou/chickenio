@@ -2,6 +2,7 @@
 # vim: expandtab ts=4 sw=4
 # Inspired by http://www.raspberrypi-spy.co.uk/2015/03/bh1750fvi-i2c-digital-light-intensity-sensor/
 
+import sys
 import smbus
 import time
 import Adafruit_DHT
@@ -123,13 +124,13 @@ class BH1750():
 
 url = 'http://192.168.0.119:3000/environmental-log/store'
 
-cred = credentials.Certificate('chickenio-309621-27a35130195e.json')
-initialize_app(cred, {'storageBucket': 'chickenio.appspot.com'})
-bucket = storage.bucket()
+#cred = credentials.Certificate('chickenio-309621-27a35130195e.json')
+#initialize_app(cred, {'storageBucket': 'chickenio.appspot.com'})
+#bucket = storage.bucket()
 
-##bus = smbus.SMBus(0) # Rev 1 Pi uses 0
-#bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
-#DLsensor = BH1750(bus)
+#bus = smbus.SMBus(0) # Rev 1 Pi uses 0
+bus = smbus.SMBus(1)  # Rev 2 Pi uses 1
+DLsensor = BH1750(bus)
 DHTsensor = Adafruit_DHT.DHT22
 # Example using a Raspberry Pi with DHT sensor
 # connected to GPIO23.
@@ -142,7 +143,15 @@ def single_frame(name='img_'+datetime.now().strftime('%Y-%m-%d_%H:%M:%S')+'.jpg'
     Thread(target=os.system, args=([arg])).start()
 
 #funcao que atualizara as informacoes do ambiente na hora atual
-def dbUpdate(now, lumi, temp, humi, file):
+def dbUpdate(now, lumi, temp, humi):
+    #print('%s %s %s %s' % (now, lumi, temp, humi))
+    json = {'timestamp':now.strftime("%Y-%m-%d %H:%M:%S"),'light':"%.2f" % lumi,'temperature':"%.2f" % temp,'air_humidity':"%.2f" % humi}
+    print(json)
+    pkg = requests.post(url, data = json)
+    return pkg.text
+
+#funcao que atualizara as informacoes do ambiente na hora atual
+def imageUp(now, filename):
     #image = bucket.blob(file)
     #image.upload_from_filename(filename='images/'+file)
     #image.make_public()
@@ -157,27 +166,34 @@ def dbUpdate(now, lumi, temp, humi, file):
     #            shutil.rmtree(file_path)
     #    except Exception as e:
     #        print('Failed to delete %s. Reason: %s' % (file_path, e))
+    return "Imagem Database Disconnected. Filename: %s" % filename
 
-    json = {'timestamp':now.strftime("%Y-%m-%d %H:%M:%S"),'light':"%.2f" % lumi,'temperature':"%.2f" % temp,'air_humidity':"%.2f" % humi}
-    print(json)
-    #pkg = requests.post(url, data = json)
-    return "Database Disconnected"#pkg.text
+try:
+    switch = 1
+    while True:
+        now = datetime.now()
+        if switch:
+            #sens = DLsensor.mtreg
+            #hr = DLsensor.measure_high_res()
+            #hr2 = DLsensor.measure_high_res2()
+            lumi = DLsensor.measure_low_res()
+            DLsensor.set_sensitivity((DLsensor.mtreg + 10) % 255)
 
-while True:
-    now = datetime.now()
-    #sens = DLsensor.mtreg
-    #hr = DLsensor.measure_high_res()
-    #hr2 = DLsensor.measure_high_res2()
-    lumi = 1#DLsensor.measure_low_res()
-    #DLsensor.set_sensitivity((DLsensor.mtreg + 10) % 255)
+            # Try to grab a sensor reading.  Use the read_retry method which will retry up
+            # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
+            humi, temp = Adafruit_DHT.read_retry(DHTsensor, DHTpin)
+            
+            print(dbUpdate(now, lumi, temp, humi))
+            switch = 0
+        else:
+            filename = 'img_'+now.strftime('%Y-%m-%d_%H:%M:%S')+'.jpg'
+            single_frame(filename, 10)
+            time.sleep(10)
 
-    # Try to grab a sensor reading.  Use the read_retry method which will retry up
-    # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
-    humi, temp = Adafruit_DHT.read_retry(DHTsensor, DHTpin)
-
-    filename = 'img_'+now.strftime('%Y-%m-%d_%H:%M:%S')+'.jpg'
-    single_frame(filename, 10)
-    time.sleep(10)
-    
-    print(dbUpdate(now, lumi, temp, humi, filename))
-    time.sleep(delay)
+            print(imageUp(now, filename))
+            switch = 1
+        time.sleep(delay/2)
+except (KeyboardInterrupt, SystemExit):
+    print(" -> Ambient Control program shutdown...")
+    print("Bye!")
+    sys.exit()

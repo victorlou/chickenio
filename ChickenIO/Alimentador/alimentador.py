@@ -8,13 +8,13 @@ import json
 
 EMULATE_HX711=False
 
-rfid_sensitivity = 10
-measures = 100
+rfid_sensitivity = 3
+measures = 3
 reference_unit = 1
 min_weight = 100
 max_feed = 10000
 min_feed = 10
-zero_tolerance = 50
+zero_tolerance = 1
 db_failcount = 0
 db_tolerance = 10
 db_reqretries = 10
@@ -34,7 +34,7 @@ if not EMULATE_HX711:
 else:
     from emulated_hx711 import HX711
 
-hx = HX711(5, 6)
+hx = HX711(23, 24)
 hx.set_reading_format("MSB", "MSB")
 
 # HOW TO CALCULATE THE REFFERENCE UNIT
@@ -89,6 +89,7 @@ def rfidWait(rfid):
         else:
             print("RFID: The %s RFID was read, it is the chicken's %s RFID. Failures were reset." % (read, rfid)) 
             fails = 0
+        time.sleep(3)
     print("RFID: The %s RFID was definitively NOT detected, proceeding." % rfid)
     return
 
@@ -117,7 +118,7 @@ def dbGetStats(rfid):
         try:
             pkg = requests.get(url+'/chickens/%s' % rfid)
             print(pkg.text)
-            return json.loads(pkg).text
+            return json.loads(pkg.text)
         except:
             print("Stats GET fail #%s" % i)
     return None
@@ -129,7 +130,7 @@ def dbUpdateWeight(rfid, weight):
     for i in range(db_reqretries):
         try:
             pkg = requests.post(url+'/chicken-weight-log/store', data = json)
-            print(pkg.txt)
+            print(pkg.text)
             return True
         except:
             print("Weight POST fail #%s" % i)
@@ -141,7 +142,7 @@ def dbUpdateFeed(rfid, feed, leftover, meals, mealn):
         'tag_code':'%s' % rfid,
         'food_amount':'%.2f' % feed,
         'food_amount_at_end':'%.2f' % leftover,
-        'ate_food':(leftover < min_feed),
+        'ate_food':'%s' % (leftover < min_feed),
         'meals_per_day':'%s' % meals,
         'daily_meal_number':'%s' % mealn,
         'timestamp':mytime()}
@@ -149,7 +150,7 @@ def dbUpdateFeed(rfid, feed, leftover, meals, mealn):
     for i in range(db_reqretries):
         try:
             pkg = requests.post(url+'/feeder-weight-log/store', data = json)
-            print(pkg.txt)
+            print(pkg.text)
             return True
         except:
             print("Feed POST fail #%s" % i)
@@ -196,13 +197,13 @@ def dispenseFood():
     return
 
 def getChickenWeight():
-    weight = hx.get_weight_A(5)
+    weight = hx.get_weight_B(5)
     hx.power_down()
     hx.power_up()
     return weight
 
 def getFeedWeight():
-    weight = hx.get_weight_B(5)
+    weight = hx.get_weight_A(5)
     hx.power_down()
     hx.power_up()
     return weight
@@ -233,6 +234,7 @@ try:
                                 i -= 1
                         time.sleep(0.1)
                     #a racao so sera liberada se nao houver muitas medidas zero na balanca
+                    print(weights)
                     if zero_counter <= zero_tolerance:
                         print("FEEDER: The chicken's weight is sufficiently consistent.")
                         lightLED(2)
@@ -255,8 +257,8 @@ try:
                         print("FEEDER: Feed dispensed, waiting for the chicken to eat and leave.")
                         lightLED(3)
                         rfidWait(rfid)
-                        print("FEEDER: The chicken has left, the %s feed and %s leftover weight will be uploaded to the database." % (feed, leftover))
                         leftover = getFeedWeight()
+                        print("FEEDER: The chicken has left, the %s feed and %s leftover weight will be uploaded to the database." % (feed, leftover))
                         dbUpdateFeed(rfid, feed, leftover, stats["meals_per_day"], mealn)
                         print("FEEDER: Operation complete.")
                         lightLED(6)

@@ -3,22 +3,25 @@
 import sys
 import time
 from datetime import datetime
-import random
+import requests
+import json
 
 EMULATE_HX711=False
 
 rfid_sensitivity = 10
 measures = 100
-referenceUnit = 1
+reference_unit = 1
 min_weight = 100
 max_feed = 10000
+min_feed = 10
 zero_tolerance = 50
-dbfailcount = 0
-dbtolerance = 3
+db_failcount = 0
+db_tolerance = 10
+db_reqretries = 10
 default_feed = 100
-end_time = 10
+end_time = 5
 
-url = 'http://192.168.0.119:3000/'
+url = 'http://192.168.0.119:3000'
 #address = "endereco ip do banco de dados"
 #login = "login no banco de dados"
 #password = "senha no banco de dados"
@@ -39,8 +42,9 @@ hx.set_reading_format("MSB", "MSB")
 # In this case, 92 is 1 gram because, with 1 as a reference unit I got numbers near 0 without any weight
 # and I got numbers around 184000 when I added 2kg. So, according to the rule of thirds:
 # If 2000 grams is 184000 then 1000 grams is 184000 / 2000 = 92.
-#hx.set_reference_unit(113)
-#hx.set_reference_unit(referenceUnit)
+hx.set_reference_unit_A(116.189)
+hx.set_reference_unit_B(29.601)
+#hx.set_reference_unit(reference_unit)
 
 hx.reset()
 hx.tare_A()
@@ -88,82 +92,76 @@ def rfidWait(rfid):
     print("RFID: The %s RFID was definitively NOT detected, proceeding." % rfid)
     return
 
-#funcao placeholder que conectara ao banco de dados
+#funcao que conectara ao banco de dados
 def dbConnect(url):#(address, login, password):
     try:
-        #pkg = requests.get(url)
-        #return 1
-        return random.randint(0, 1)
+        print(requests.get(url+'/').text)
+        return True
     except:
-        return 0
+        return False
 
-#funcao placeholder que detectara o rfid e o retornara
+#funcao que verificara se a galinha especifica pode ser alimentada
 def dbCanFeed(rfid):
-    json = {'timestamp':mytime(),'request':"can-feed",'rfid':'%s' % rfid}
-    print(json)
-    try:
-        #pkg = requests.post(url, data = json)
-        #print(pkg.text)
-        if random.randint(0, 1) == 0:#pkg.text == "Yes":
-            return True
-        else:
-            return False
-    except:
-        return False
+    for i in range(db_reqretries):
+        try:
+            pkg = requests.get(url+'/chickens/can-eat/%s' % rfid)
+            print(pkg.text)
+            return json.loads(pkg.text)["nextMealNumber"]
+        except:
+            print("Feed GET fail #%s" % i)
+    return 0
 
-#funcao placeholder que lera todos os dados relevantes para o calculo da quantidade da racao da galinha
+#funcao que lera todos os dados relevantes para o calculo da quantidade da racao da galinha
 def dbGetStats(rfid):
-    json = {'timestamp':mytime(),'request':"get-weight",'rfid':'%s' % rfid}
-    print(json)
-    stats = []
-    try:
-        #pkg = requests.get(url, data = json)
-        #print(pkg.text)
-        stats.append(10000.0)#stats.append(float(pkg.text))
-    except:
-        stats.append(10000.0)
-    return stats
+    for i in range(db_reqretries):
+        try:
+            pkg = requests.get(url+'/chickens/%s' % rfid)
+            print(pkg.text)
+            return json.loads(pkg).text
+        except:
+            print("Stats GET fail #%s" % i)
+    return None
 
-#funcao placeholder que atualizara o peso da galinha
+#funcao que atualizara o peso da galinha
 def dbUpdateWeight(rfid, weight):
-    json = {'timestamp':mytime(),'request':"update-weight",'rfid':'%s' % rfid,'weight':'%.2f' % weight}
+    json = {'timestamp':mytime(), 'tag_code':'%s' % rfid,'weight':'%.2f' % weight}
     print(json)
-    try:
-        #pkg = requests.post(url, data = json)
-        #print(pkg.text)
-        return True
-    except:
-        return False
+    for i in range(db_reqretries):
+        try:
+            pkg = requests.post(url+'/chicken-weight-log/store', data = json)
+            print(pkg.txt)
+            return True
+        except:
+            print("Weight POST fail #%s" % i)
+    return False
 
-#funcao placeholder que atualizara o peso da ultima refeicao da galinha
-def dbUpdateFeed(rfid, feed):
-    json = {'timestamp':mytime(),'request':"update-feed",'rfid':'%s' % rfid,'feed':'%.2f' % feed}
+#funcao que atualizara o peso da ultima refeicao da galinha
+def dbUpdateFeed(rfid, feed, leftover, meals, mealn):
+    json = {
+        'tag_code':'%s' % rfid,
+        'food_amount':'%.2f' % feed,
+        'food_amount_at_end':'%.2f' % leftover,
+        'ate_food':(leftover < min_feed),
+        'meals_per_day':'%s' % meals,
+        'daily_meal_number':'%s' % mealn,
+        'timestamp':mytime()}
     print(json)
-    try:
-        #pkg = requests.post(url, data = json)
-        #print(pkg.text)
-        return True
-    except:
-        return False
+    for i in range(db_reqretries):
+        try:
+            pkg = requests.post(url+'/feeder-weight-log/store', data = json)
+            print(pkg.txt)
+            return True
+        except:
+            print("Feed POST fail #%s" % i)
+    return False
 
-#funcao placeholder que atualizara o peso do resto da ultima refeicao da galinha
-def dbUpdateLeftover(rfid, leftover):
-    json = {'timestamp':mytime(),'request':"update-leftover",'rfid':'%s' % rfid,'leftover':'%.2f' % leftover}
-    print(json)
-    try:
-        #pkg = requests.post(url, data = json)
-        #print(pkg.text)
-        return True
-    except:
-        return False
-
-#funcao placeholder que encerrara a conexao com o banco de dados
+#funcao que encerrara a conexao com o banco de dados
 def dbDisconnect():
     return
 
 #funcao para calcular quanta comida deve ser dada a galinha, baseado em uma serie de fatores
 def calculateFeed(stats):
-    return stats[0]/10 #por enquanto apenas retorna o peso da galinha dividido por 10
+    return stats["food_quantity"]
 
 #funcao que controla os LEDs
 #color = 0 : desligado
@@ -198,24 +196,16 @@ def dispenseFood():
     return
 
 def getChickenWeight():
-    #weight = hx.get_weight_A(5)
-    #hx.power_down()
-    #hx.power_up()
-    return random.uniform(0, 2000)#weight
+    weight = hx.get_weight_A(5)
+    hx.power_down()
+    hx.power_up()
+    return weight
 
 def getFeedWeight():
-    #weight = hx.get_weight_B(5)
-    #hx.power_down()
-    #hx.power_up()
-    return random.uniform(0, 200)#weight
-
-#funcao para encerrar o programa
-def cleanAndExit():
-    print("Cleaning...")
-    if not EMULATE_HX711:
-        GPIO.cleanup()
-    print("Bye!")
-    sys.exit()
+    weight = hx.get_weight_B(5)
+    hx.power_down()
+    hx.power_up()
+    return weight
 
 try:
     while True:
@@ -224,8 +214,9 @@ try:
             print("FEEDER: Read the RFID %s." % rfid)
             if dbConnect(url):#(address, login, password):
                 print("FEEDER: Successfully connected to the database.")
-                dbfailcount = 0
-                if dbCanFeed(rfid):
+                db_failcount = 0
+                mealn = dbCanFeed(rfid)
+                if mealn > 0:
                     print("FEEDER: The RFID %s chicken can be fed, measuring" % rfid)
                     lightLED(1)
                     #colhe varias medicoes do peso, quanto a memoria do Raspberry aguentar
@@ -253,9 +244,8 @@ try:
                         print("FEEDER: The chicken's %s weight will be uploaded to the database." % medium_weight)
                         dbUpdateWeight(rfid, medium_weight)
                         print("FEEDER: The chicken's feed will be determined by the data in the database.")
-                        feed = calculateFeed(dbGetStats(rfid))
-                        print("FEEDER: The chicken's %s feed weight will be uploaded to the database." % feed)
-                        dbUpdateFeed(rfid, feed)
+                        stats = dbGetStats(rfid)
+                        feed = calculateFeed(stats)
                         #dispersao da racao ate os valores estipulados
                         print("FEEDER: Dispensing feed.")
                         for i in range(max_feed):
@@ -265,9 +255,9 @@ try:
                         print("FEEDER: Feed dispensed, waiting for the chicken to eat and leave.")
                         lightLED(3)
                         rfidWait(rfid)
-                        feed = getFeedWeight()
-                        print("FEEDER: The chicken has left, the %s leftover feed weight will be uploaded to the database." % feed)
-                        dbUpdateLeftover(rfid, feed)
+                        print("FEEDER: The chicken has left, the %s feed and %s leftover weight will be uploaded to the database." % (feed, leftover))
+                        leftover = getFeedWeight()
+                        dbUpdateFeed(rfid, feed, leftover, stats["meals_per_day"], mealn)
                         print("FEEDER: Operation complete.")
                         lightLED(6)
                     else :
@@ -280,10 +270,10 @@ try:
                 time.sleep(end_time)
                 lightLED(0)
             else:
-                print("FEEDER: Failed to connect to database. Fail Count: %s" % dbfailcount)
-                dbfailcount += 1
-                if dbfailcount > dbtolerance:
-                    dbfailcount = 0
+                print("FEEDER: Failed to connect to database. Fail Count: %s" % db_failcount)
+                db_failcount += 1
+                if db_failcount > db_tolerance:
+                    db_failcount = 0
                     print("FEEDER: Too many database connection fails, engaging default program.")
                     lightLED(9)
                     for i in range(max_feed):
@@ -294,6 +284,10 @@ try:
                     time.sleep(end_time)
                     lightLED(0)
 except (KeyboardInterrupt, SystemExit):
-    print("FEEDER: Read the RFID %s." % rfid)
-    cleanAndExit()
+    print(" -> Feeder program shutdown...")
+    print("Cleaning...")
+    if not EMULATE_HX711:
+        GPIO.cleanup()
+    print("Bye!")
+    sys.exit()
         

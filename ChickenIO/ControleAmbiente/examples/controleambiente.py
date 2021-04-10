@@ -134,7 +134,7 @@ DLsensor = BH1750(bus)
 DHTsensor = Adafruit_DHT.DHT22
 # Example using a Raspberry Pi with DHT sensor
 # connected to GPIO23.
-DHTpin = 4
+DHTpin = 14
 
 delay = 5#3600
 
@@ -156,16 +156,16 @@ def imageUp(now, filename):
     #image.upload_from_filename(filename='images/'+file)
     #image.make_public()
     #print("your file url", image.public_url)
-    #folder = 'images'
-    #for filename in os.listdir(folder):
-    #    file_path = os.path.join(folder, filename)
-    #    try:
-    #        if os.path.isfile(file_path) or os.path.islink(file_path):
-    #            os.unlink(file_path)
-    #        elif os.path.isdir(file_path):
-    #            shutil.rmtree(file_path)
-    #    except Exception as e:
-    #        print('Failed to delete %s. Reason: %s' % (file_path, e))
+    folder = 'images'
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
     return "Imagem Database Disconnected. Filename: %s" % filename
 
 try:

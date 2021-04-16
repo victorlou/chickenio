@@ -9,6 +9,7 @@ const login = () => import(/* webpackChunkName: "login" */ '../views/Login')
 const Reports = () => import(/* webpackHuckName: "dashboard" */ '../views/DashboardContent/Reports')
 const SensorsReport = () => import(/* webpackHuckName: "dashboard" */ '../views/DashboardContent/SensorsReport')
 const RegisterChicken = () => import(/* webpackHuckName: "dashboard" */ '../views/DashboardContent/RegisterChicken')
+const ChickenReport = () => import(/* webpackHuckName: "dashboard" */ '../views/DashboardContent/ChickenReport')
 const Dashboard = () => import(/* webpackHuckName: "dashboard" */ '../views/Dashboard')
 
 const routes = [
@@ -33,6 +34,11 @@ const routes = [
                 path: "/reports",
                 name: "reports",
                 component: Reports
+            },
+            {
+                path: "/chickenreport/:name",
+                name: "chickenreport",
+                component: ChickenReport
             },
             {
                 path: "/sensors",

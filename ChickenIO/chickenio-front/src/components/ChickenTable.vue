@@ -1,13 +1,12 @@
 <template>
   <div>
-    <v-data-table style="cursor:pointer"
-        :custom-filter="filterText"
-        :headers="headers"
-        :items="chickens"
-        :search="search"
-        class="elevation-1"
-        item-key="name"
-        @click:row="clickRow"
+    <v-data-table :custom-filter="filterText"
+                  :headers="headers"
+                  :items="chickens"
+                  :search="search"
+                  class="elevation-1 row-pointer"
+                  item-key="name"
+                  @click:row="clickRow"
     >
       <template v-slot:top>
         <v-text-field
@@ -133,12 +132,16 @@ export default {
     },
     clickRow(value) {
       //insert click on row logic here
-      console.log(value.name)
-    }
+      console.log("Clicked on table row")  // debug
+      console.log(value)  // debug
+      this.$emit("onSelectChicken", value.name)
+    },
   },
 }
 </script>
 
-<style scoped>
-
+<style lang="scss">
+.row-pointer>.v-data-table__wrapper>table>tbody>tr :hover {
+cursor: pointer;
+}
 </style>

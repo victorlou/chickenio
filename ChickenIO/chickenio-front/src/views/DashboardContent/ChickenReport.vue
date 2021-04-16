@@ -38,67 +38,16 @@
         </v-card>
       </v-col>
     </v-row>
-<!--    <v-row>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4></h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
-<!--    <v-row>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4>Card</h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4>Card</h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
-    <v-row>
-      <v-col>
-        <v-card>
-          <v-card-title>
-            <h4>Chickens</h4>
-          </v-card-title>
-          <v-card-subtitle>
-            <ChickenTable @onSelectChicken="onSelectedChicken"/>
-          </v-card-subtitle>
-          <v-card-text>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
   </v-container>
 </template>
 
 <script>
 import WeightHistoryChart from "../../components/Charts/WeightHistoryChart";
-// import LineChartContainer from "../../components/Charts/LineChartContainer.vue";
-import ChickenTable from "../../components/ChickenTable"
 
 export default {
-  name: 'Charts',
+  name: "ChickenReport",
   components: {
-    WeightHistoryChart,
-    ChickenTable,
+    WeightHistoryChart
   },
   data() {
     return {
@@ -126,15 +75,8 @@ export default {
         maintainAspectRatio: false
       }
     }
-  },
-  methods: {
-    onSelectedChicken(id) {
-      console.log(id) // debug
-      this.$router.push({path: '/chickenreport/' + id});
-    }
   }
 }
-
 </script>
 
 <style scoped>

@@ -13,7 +13,7 @@
         </v-card>
       </v-col>
       <v-col lg="6">
-        <v-card height="300">
+        <v-card>
           <v-card-title>
             Temperature #1
           </v-card-title>
@@ -23,9 +23,19 @@
         </v-card>
       </v-col>
       <v-col lg="6" >
-        <v-card height="300">
+        <v-card>
           <v-card-title>
             Temperature #2
+          </v-card-title>
+          <v-card-subtitle>
+            <TemperatureChart1 />
+          </v-card-subtitle>
+        </v-card>
+      </v-col>
+      <v-col lg="6" >
+        <v-card>
+          <v-card-title>
+            Air Humidity
           </v-card-title>
           <v-card-subtitle>
             <TemperatureChart1 />

@@ -21,7 +21,8 @@ db_reqretries = 10
 default_feed = 100
 end_time = 5
 
-url = 'http://192.168.0.119:3000'
+url = 'https://chickenio-api.herokuapp.com'
+#url = 'http://192.168.0.119:3000'
 #address = "endereco ip do banco de dados"
 #login = "login no banco de dados"
 #password = "senha no banco de dados"

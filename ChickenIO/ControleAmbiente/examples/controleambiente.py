@@ -123,7 +123,8 @@ class BH1750():
     def measure_high_res2(self, additional_delay=0):
         return self.do_measurement(self.ONE_TIME_HIGH_RES_MODE_2, additional_delay)
 
-url = 'http://192.168.0.119:3000/environmental-log/store'
+url = 'https://chickenio-api.herokuapp.com/environmental-log/store'
+#url = 'http://192.168.0.119:3000/environmental-log/store'
 
 firebaseConfig = {
     "apiKey": "AIzaSyBxXAg-0Epn1C5VQYBGr8SC5WwIzdNqq7k",

@@ -12,7 +12,7 @@ rfid_sensitivity = 3
 measures = 3
 reference_unit = 1
 min_weight = 100
-max_feed = 10000
+max_feed = 999999
 min_feed = 10
 zero_tolerance = 1
 db_failcount = 0
@@ -33,7 +33,9 @@ if not EMULATE_HX711:
     from hx711 import HX711
 else:
     from emulated_hx711 import HX711
+print("Inicializando sistema")
 
+#preparar balancas
 hx = HX711(23, 24)
 hx.set_reading_format("MSB", "MSB")
 
@@ -42,18 +44,31 @@ hx.set_reading_format("MSB", "MSB")
 # In this case, 92 is 1 gram because, with 1 as a reference unit I got numbers near 0 without any weight
 # and I got numbers around 184000 when I added 2kg. So, according to the rule of thirds:
 # If 2000 grams is 184000 then 1000 grams is 184000 / 2000 = 92.
-hx.set_reference_unit_A(116.189)
-hx.set_reference_unit_B(29.601)
+hx.set_reference_unit_B(116.189)
+hx.set_reference_unit_A(29.601)
 #hx.set_reference_unit(reference_unit)
+print("Preparando balancas")
 
 hx.reset()
 hx.tare_A()
 hx.tare_B()
 
+print("Tara das balancas configuradas!")
+
+print("Pesando Primeiro...")
+weight = hx.get_weight_B(5)
+hx.power_down()
+hx.power_up()
+time.sleep(0.1)
+print("Peso: %s" % weight)
+
 reader = SimpleMFRC522()
 
 strip = Adafruit_NeoPixel(12, 12, 800000, 10, False, 255)
 strip.begin()
+
+#preparar rele
+GPIO.setup(13, GPIO.OUT)
 
 #balanca A = galinha/poleiro
 #balanca B = racao/comedouro
@@ -77,21 +92,6 @@ def rfidDetect():
             succs = 0
     print("RFID: The %s RFID was definitively detected, proceeding." % rfid)
     return rfid
-
-def rfidWait(rfid):
-    fails = 0
-    while fails < rfid_sensitivity:
-        print("RFID: Checking for the RFID...")
-        read = reader.read_id_no_block()
-        if read != rfid:
-            print("RFID: The %s RFID was read, it is different from the chicken's %s RFID. Failures: %s." % (read, rfid, fails+1))
-            fails += 1
-        else:
-            print("RFID: The %s RFID was read, it is the chicken's %s RFID. Failures were reset." % (read, rfid)) 
-            fails = 0
-        time.sleep(3)
-    print("RFID: The %s RFID was definitively NOT detected, proceeding." % rfid)
-    return
 
 #funcao que conectara ao banco de dados
 def dbConnect(url):#(address, login, password):
@@ -171,7 +171,8 @@ def calculateFeed(stats):
 #color = 3 : verde    - dispensao de racao concluida
 #color = 4 : laranja  - peso da galinha inconsistente
 #color = 5 : vermelho - galinha nao pode ser alimentada
-#color = 6 : roxo     - operacao concluida com scuesso, galinha pode se retirar
+#color = 6 : roxo     - operacao concluida com sucesso, galinha pode se retirar
+#color = 7 : cian     - racao foi inteiramente comida
 #color = 9 : branco   - conexao com o banco de dados perdida, racao padrao sera dispensada
 def lightLED(color):
     switcher = {
@@ -182,8 +183,20 @@ def lightLED(color):
         4: Color(255, 127,   0),
         5: Color(255,   0,   0),
         6: Color(127,   0, 255),
+        7: Color(  0, 127, 255),
         9: Color(255, 255, 255)
     }
+    #switcher = {
+    #    0: Color(  0,   0,   0),
+    #    1: Color(255,   0,   0),
+    #    2: Color(255, 127,   0),
+    #    3: Color(255,   0, 127),
+    #    4: Color(255, 127, 127),
+    #    5: Color(  0, 127, 255),
+    #    6: Color(  0,   0, 255),
+    #    7: Color(127,   0, 255),
+    #    9: Color(255, 255, 255)
+    #}
     for i in range(0, strip.numPixels(), 1):
         strip.setPixelColor(i, Color(0, 0, 0))
     for i in range(0, strip.numPixels(), 1):
@@ -191,22 +204,47 @@ def lightLED(color):
     strip.show()
     return
 
-#funcao que liberara uma "unidade" do tipo de racao especificado
-def dispenseFood():
-    #codigo para girar o rele aqui
-    return
-
 def getChickenWeight():
-    weight = hx.get_weight_B(5)
-    hx.power_down()
-    hx.power_up()
-    return weight
-
-def getFeedWeight():
+    print("Pesando...")
     weight = hx.get_weight_A(5)
     hx.power_down()
     hx.power_up()
+    time.sleep(0.1)
+    print("Peso: %s" % weight)
     return weight
+
+def getFeedWeight():
+    weight = hx.get_weight_B(5)
+    hx.power_down()
+    hx.power_up()
+    time.sleep(0.1)
+    return weight
+
+#funcao que liberara a racao especificada
+def dispenseFood(tofeed):
+    GPIO.output(13, 1)
+    for i in range(max_feed):
+        if getFeedWeight() >= tofeed:
+            break
+    GPIO.output(13, 0)
+    return
+
+def rfidWait(rfid):
+    fails = 0
+    while fails < rfid_sensitivity:
+        print("RFID: Checking for the RFID...")
+        read = reader.read_id_no_block()
+        if read != rfid:
+            print("RFID: The %s RFID was read, it is different from the chicken's %s RFID. Failures: %s." % (read, rfid, fails+1))
+            fails += 1
+        else:
+            print("RFID: The %s RFID was read, it is the chicken's %s RFID. Failures were reset." % (read, rfid)) 
+            fails = 0
+        if (getFeedWeight() <= min_feed):
+            lightLED(7)
+        time.sleep(3)
+    print("RFID: The %s RFID was definitively NOT detected, proceeding." % rfid)
+    return
 
 try:
     while True:
@@ -223,6 +261,15 @@ try:
                     #colhe varias medicoes do peso, quanto a memoria do Raspberry aguentar
                     zero_counter = 0
                     weights = []
+                    print("Pesando NaHora...")
+                    hx.power_down()
+                    hx.power_up()
+                    time.sleep(0.1)
+                    weight = hx.get_weight_B(5)
+                    hx.power_down()
+                    hx.power_up()
+                    time.sleep(0.1)
+                    print("Peso: %s" % weight)
                     for i in range(measures):
                         weights.append(getChickenWeight())
                         #detector de quantas vezes a balanca nao mediu um peso significativo
@@ -250,10 +297,7 @@ try:
                         feed = calculateFeed(stats)
                         #dispersao da racao ate os valores estipulados
                         print("FEEDER: Dispensing feed.")
-                        for i in range(max_feed):
-                            dispenseFood()
-                            if getFeedWeight() > feed:
-                                break
+                        dispenseFood(feed)
                         print("FEEDER: Feed dispensed, waiting for the chicken to eat and leave.")
                         lightLED(3)
                         rfidWait(rfid)
@@ -278,11 +322,8 @@ try:
                     db_failcount = 0
                     print("FEEDER: Too many database connection fails, engaging default program.")
                     lightLED(9)
-                    for i in range(max_feed):
-                        dispenseFood()
-                        if getFeedWeight() > default_feed:
-                            print("FEEDER: The default amount of feed was dispensed.")
-                            break
+                    dispenseFood(default_feed)
+                    print("FEEDER: The default amount of feed was dispensed.")
                     time.sleep(end_time)
                     lightLED(0)
 except (KeyboardInterrupt, SystemExit):

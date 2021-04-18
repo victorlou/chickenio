@@ -69,7 +69,7 @@ strip = Adafruit_NeoPixel(12, 12, 800000, 10, False, 255)
 strip.begin()
 
 #preparar rele
-GPIO.setup(13, GPIO.OUT)
+GPIO.setup(18, GPIO.OUT)
 
 #balanca A = galinha/poleiro
 #balanca B = racao/comedouro

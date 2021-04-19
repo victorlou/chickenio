@@ -5,7 +5,6 @@
       dark
       permanent
   >
-    <h1>ChickenIO</h1>
     <v-list>
       <v-list-item
           v-for="item in items"
@@ -41,10 +40,9 @@ export default {
   data() {
     return {
       items: [
-        {title: 'Chicken Report', icon: 'mdi-view-dashboard', link: '/reports'},
-        {title: 'Sensors Report', icon: 'mdi-leak', link: '/sensors'},
-        {title: 'Register Chicken', icon: 'mdi-image', link: '/registerchicken'},
-        {title: 'About', icon: 'mdi-help-box', link: '/about'}
+        {title: 'Galinhas', icon: 'mdi-view-dashboard', link: '/reports'},
+        {title: 'Dados Ambientais', icon: 'mdi-leak', link: '/sensors'},
+        {title: 'Sobre', icon: 'mdi-help-box', link: '/about'}
       ],
       right: null,
       drawer: true,

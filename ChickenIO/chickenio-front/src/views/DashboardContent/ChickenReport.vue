@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col lg="2" md="6" sm="6">
+      <v-col lg="6" md="6" sm="6">
         <v-card>
           <v-card-title>
             <h4>Name: {{ chicken.name }}</h4>
@@ -12,7 +12,7 @@
           ></v-img>
         </v-card>
       </v-col>
-      <v-col lg="2" md="6" sm="6">
+      <v-col lg="6" md="6" sm="6">
         <v-card>
           <v-card-title>
             <h4>Information</h4>
@@ -24,7 +24,7 @@
           </v-card-subtitle>
         </v-card>
       </v-col>
-      <v-col lg="8" md="12" sm="12">
+      <v-col lg="12" md="12" sm="12">
         <v-card>
           <v-card-title>
             <h4>Weight History</h4>

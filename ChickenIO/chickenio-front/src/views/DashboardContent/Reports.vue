@@ -1,87 +1,22 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col lg="2" md="6" sm="6">
-        <v-card>
-          <v-card-title>
-            <h4>Name: {{ chicken.name }}</h4>
-          </v-card-title>
-          <v-img
-              height="250"
-              src="../../../public/biosecurity-chicken-in-mask.jpg"
-          ></v-img>
-        </v-card>
-      </v-col>
-      <v-col lg="2" md="6" sm="6">
-        <v-card>
-          <v-card-title>
-            <h4>Information</h4>
-          </v-card-title>
-          <v-card-subtitle class="font-weight-bold">
-            RFID: {{ chicken.rfidTag }} <br>
-            Current weight: {{ chicken.currentWeight }} kg <br>
-            Birthdate: {{ chicken.birthdate }} <br>
-          </v-card-subtitle>
-        </v-card>
-      </v-col>
-      <v-col lg="8" md="12" sm="12">
-        <v-card>
-          <v-card-title>
-            <h4>Weight History</h4>
-          </v-card-title>
-          <v-card-subtitle>
-            Weight history chart
-          </v-card-subtitle>
-          <v-card-text>
-            <WeightHistoryChart></WeightHistoryChart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-<!--    <v-row>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4></h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
-<!--    <v-row>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4>Card</h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--      <v-col>-->
-<!--        <v-card>-->
-<!--          <v-card-title>-->
-<!--            <h4>Card</h4>-->
-<!--          </v-card-title>-->
-<!--          <v-card-subtitle>-->
-<!--            Some card-->
-<!--          </v-card-subtitle>-->
-<!--        </v-card>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
-    <v-row>
       <v-col>
         <v-card>
           <v-card-title>
-            <h4>Chickens</h4>
+            <h4>Galinhas</h4>
           </v-card-title>
           <v-card-subtitle>
-            <ChickenTable @onSelectChicken="onSelectedChicken"/>
+            <v-btn
+              elevation="2"
+              class="primary float-right mr-4"
+              to="/registerchicken"
+              type="button"
+              >Adicionar nova</v-btn
+            >
           </v-card-subtitle>
           <v-card-text>
+            <ChickenTable @onSelectChicken="onSelectedChicken" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -90,14 +25,11 @@
 </template>
 
 <script>
-import WeightHistoryChart from "../../components/Charts/WeightHistoryChart";
-// import LineChartContainer from "../../components/Charts/LineChartContainer.vue";
-import ChickenTable from "../../components/ChickenTable"
+import ChickenTable from "../../components/ChickenTable";
 
 export default {
-  name: 'Charts',
+  name: "Charts",
   components: {
-    WeightHistoryChart,
     ChickenTable,
   },
   data() {
@@ -106,37 +38,35 @@ export default {
         name: "Gesicleide",
         rfidTag: "123456789",
         birthdate: "01/04/2020",
-        currentWeight: "3"
+        currentWeight: "3",
       },
       chickenReport: {
         averageFoodWeight: "300",
       },
       chartdata: {
-        labels: ['January', 'February'],
+        labels: ["January", "February"],
         datasets: [
           {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [40, 20]
-          }
-        ]
+            label: "Data One",
+            backgroundColor: "#f87979",
+            data: [40, 20],
+          },
+        ],
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
-      }
-    }
+        maintainAspectRatio: false,
+      },
+    };
   },
   methods: {
     onSelectedChicken(id) {
-      console.log(id) // debug
-      this.$router.push({path: '/chickenreport/' + id});
-    }
-  }
-}
-
+      console.log(id); // debug
+      this.$router.push({ path: "/chickenreport/" + id });
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 </style>

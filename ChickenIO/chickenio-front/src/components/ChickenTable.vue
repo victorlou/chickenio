@@ -1,147 +1,94 @@
 <template>
   <div>
-    <v-data-table :custom-filter="filterText"
-                  :headers="headers"
-                  :items="chickens"
-                  :search="search"
-                  class="elevation-1 row-pointer"
-                  item-key="name"
-                  @click:row="clickRow"
+    <v-data-table
+      :custom-filter="filterText"
+      :headers="headers"
+      :items="chickens"
+      :search="search"
+      class="elevation-1 row-pointer"
+      item-key="id"
+      @click:row="clickRow"
     >
       <template v-slot:top>
         <v-text-field
-            v-model="search"
-            class="mx-4"
-            label="Search"
+          v-model="search"
+          class="mx-4"
+          label="Pesquisar"
         ></v-text-field>
+      </template>
+      <template v-slot:item.birthdate="item">
+        <span>{{ formatDate(item) }}</span>
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script>
+import axiosClient from '../service/axiosClient';
+import moment from "moment";
+
 export default {
   name: "ChickenTable",
   data() {
     return {
-      search: '',
+      search: "",
       headers: [
+        { text: "RFID Tag", value: "Tag.tag_code" },
         {
-          text: 'Chicken Name',
-          align: 'start',
+          text: "Nome",
+          align: "start",
           sortable: false,
-          value: 'name',
+          value: "name",
         },
-        {text: 'RFID Tag', value: 'rfidTag'},
-        {text: 'Birthdate', value: 'birthdate'},
-        {text: 'Current Weight', value: 'weight'},
-        {text: 'Current Daily Meal', value: 'meal'},
-        {text: 'Some other column', value: 'someothervalue'},
+        {
+          text: "Data de Nascimento",
+          value: "birthdate",
+        },
+        // { text: "Peso Atual", value: "weight" },
+        { text: "Número de refeições no dia", value: "meals_per_day" },
+        { text: "Quantidade por refeição (g)", value: "food_quantity" },
       ],
-      chickens: [
-        {
-          name: 'Gesicleide',
-          rfidTag: 159,
-          birthdate: 6.0,
-          weight: 24,
-          meal: 4.0,
-          someothervalue: '1%',
-        },
-        {
-          name: 'Ice cream sandwich',
-          rfidTag: 237,
-          birthdate: 9.0,
-          weight: 37,
-          meal: 4.3,
-          someothervalue: '1%',
-        },
-        {
-          name: 'Eclair',
-          rfidTag: 262,
-          birthdate: 16.0,
-          weight: 23,
-          meal: 6.0,
-          someothervalue: '7%',
-        },
-        {
-          name: 'Cupcake',
-          rfidTag: 305,
-          birthdate: 3.7,
-          weight: 67,
-          meal: 4.3,
-          someothervalue: '8%',
-        },
-        {
-          name: 'Gingerbread',
-          rfidTag: 356,
-          birthdate: 16.0,
-          weight: 49,
-          meal: 3.9,
-          someothervalue: '16%',
-        },
-        {
-          name: 'Jelly bean',
-          rfidTag: 375,
-          birthdate: 0.0,
-          weight: 94,
-          meal: 0.0,
-          someothervalue: '0%',
-        },
-        {
-          name: 'Lollipop',
-          rfidTag: 392,
-          birthdate: 0.2,
-          weight: 98,
-          meal: 0,
-          someothervalue: '2%',
-        },
-        {
-          name: 'Honeycomb',
-          rfidTag: 408,
-          birthdate: 3.2,
-          weight: 87,
-          meal: 6.5,
-          someothervalue: '45%',
-        },
-        {
-          name: 'Donut',
-          rfidTag: 452,
-          birthdate: 25.0,
-          weight: 51,
-          meal: 4.9,
-          someothervalue: '22%',
-        },
-        {
-          name: 'KitKat',
-          rfidTag: 518,
-          birthdate: 26.0,
-          weight: 65,
-          meal: 7,
-          someothervalue: '6%',
-        },
-      ],
-    }
+      chickens: [],
+    };
+  },
+  mounted() {
+    this.getChickens();
   },
   methods: {
+    getChickens() {
+      axiosClient()
+        .get(`${process.env.VUE_APP_API_BASE_URL}/chickens`)
+        .then((response) => {
+          this.chickens = response.data.chickens;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+    formatDate(date) {
+      return moment(date).format("DD/MM/YYYY");
+    },
     filterText(value, search) {
-      console.log(value)
-      return value != null &&
-          search != null &&
-          typeof value === 'string' &&
-          value.toString().toLocaleLowerCase().indexOf(search) !== -1
+      console.log(value);
+      return (
+        value != null &&
+        search != null &&
+        typeof value === "string" &&
+        value.toString().toLocaleLowerCase().indexOf(search) !== -1
+      );
     },
     clickRow(value) {
       //insert click on row logic here
-      console.log("Clicked on table row")  // debug
-      console.log(value)  // debug
-      this.$emit("onSelectChicken", value.name)
+      console.log("Clicked on table row"); // debug
+      console.log(value); // debug
+      this.$emit("onSelectChicken", value.id);
     },
   },
-}
+};
 </script>
 
 <style lang="scss">
-.row-pointer>.v-data-table__wrapper>table>tbody>tr :hover {
-cursor: pointer;
+.row-pointer > .v-data-table__wrapper > table > tbody > tr :hover {
+  cursor: pointer;
 }
 </style>

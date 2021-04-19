@@ -36,7 +36,7 @@ const routes = [
                 component: Reports
             },
             {
-                path: "/chickenreport/:name",
+                path: "/chickenreport/:id",
                 name: "chickenreport",
                 component: ChickenReport
             },

@@ -13,6 +13,7 @@ from threading import Thread
 from datetime import datetime
 from google.cloud import storage
 from firebase_admin import credentials, initialize_app, storage
+from pyrebase import pyrebase
 
 class BH1750():
     """ Implement BH1750 communication. """
@@ -122,10 +123,26 @@ class BH1750():
     def measure_high_res2(self, additional_delay=0):
         return self.do_measurement(self.ONE_TIME_HIGH_RES_MODE_2, additional_delay)
 
-url = 'http://192.168.0.119:3000/environmental-log/store'
+url = 'https://chickenio-api.herokuapp.com/environmental-log/store'
+#url = 'http://192.168.0.119:3000/environmental-log/store'
 
-#cred = credentials.Certificate('chickenio-309621-27a35130195e.json')
-#initialize_app(cred, {'storageBucket': 'chickenio.appspot.com'})
+firebaseConfig = {
+    "apiKey": "AIzaSyBxXAg-0Epn1C5VQYBGr8SC5WwIzdNqq7k",
+    "authDomain": "chicken-io.firebaseapp.com",
+    "projectId": "chicken-io",
+    "databaseURL": "https://chicken-io.firebaseapp.com",
+    "storageBucket": "chicken-io.appspot.com",
+    "messagingSenderId": "836973646165",
+    "appId": "1:836973646165:web:c8126c008b45a1f4b25fdc"
+}
+
+firebase = pyrebase.initialize_app(firebaseConfig)
+storage = firebase.storage()
+
+path_on_cloud = "surveillance"#datetime.today().strftime("%Y-%m-%d")
+
+#cred = credentials.Certificate('chicken-io-311019-26ce42952796.json')
+#initialize_app(cred, {'storageBucket': 'chicken-io.appspot.com'})
 #bucket = storage.bucket()
 
 #bus = smbus.SMBus(0) # Rev 1 Pi uses 0
@@ -152,10 +169,10 @@ def dbUpdate(now, lumi, temp, humi):
 
 #funcao que atualizara as informacoes do ambiente na hora atual
 def imageUp(now, filename):
-    #image = bucket.blob(file)
-    #image.upload_from_filename(filename='images/'+file)
-    #image.make_public()
-    #print("your file url", image.public_url)
+    image = bucket.blob(filename)
+    image.upload_from_filename(filename='images/'+filename)
+    image.make_public()
+    print("your file url", image.public_url)
     folder = 'images'
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -189,8 +206,8 @@ try:
             filename = 'img_'+now.strftime('%Y-%m-%d_%H:%M:%S')+'.jpg'
             single_frame(filename, 10)
             time.sleep(10)
-
-            print(imageUp(now, filename))
+            print(storage.child(path_on_cloud).put("images/"+filename))
+            # print(imageUp(now, filename))
             switch = 1
         time.sleep(delay/2)
 except (KeyboardInterrupt, SystemExit):

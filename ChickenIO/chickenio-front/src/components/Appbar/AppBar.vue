@@ -6,9 +6,6 @@
         dark
         dense
     >
-
-      <v-toolbar-title>ChickenIO</v-toolbar-title>
-
       <v-spacer></v-spacer>
 
 <!--      <v-btn icon>-->

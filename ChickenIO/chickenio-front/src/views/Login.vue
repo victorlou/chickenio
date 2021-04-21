@@ -1,6 +1,6 @@
 <template>
-  <v-main>
-    <v-container fill-height class="justify-center">
+  <v-main style="background-color: #E8BC5C">
+    <v-container fill-height class="justify-center" >
       <LoginForm/>
     </v-container>
     <v-footer class="justify-center">

@@ -62,9 +62,15 @@
             class="success float-right"
             elevation="2"
             type="button"
-            @click="createChicken()"
-            >Cadastrar
+            @click="!tagCode ? createChicken() : updateChicken()"
+            >Salvar
           </v-btn>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <v-alert v-model="success" dense dismissible type="success">Dados da galinha salvos com sucesso</v-alert>
+          <v-alert v-model="error" dense dismissible type="error">Erro ao salvar dados da galinha</v-alert>
         </v-col>
       </v-row>
     </v-form>
@@ -79,8 +85,15 @@ import moment from "moment";
 export default {
   name: "RegisterChickenForm",
   directives: { mask },
+  props: {
+    tagCode: {
+      type: String,
+    },
+  },
   data() {
     return {
+      success: false,
+      error: false,
       valid: false,
       validate: {
         name: [(v) => !!v || "Nome é obrigatório"],
@@ -93,17 +106,17 @@ export default {
           (v) => !!v || "Intervalo entre refeições é obrigatório",
         ],
       },
-      tags: [],
       chicken: {
-        tag_id: "",
-        food_quantity: "",
-        meals_per_day: "",
-        meals_interval: "",
+        name: "",
       },
+      tags: [],
     };
   },
   mounted() {
     this.getTags();
+    if (this.tagCode) {
+      this.getChickenData();
+    }
   },
   methods: {
     getTags() {
@@ -116,6 +129,18 @@ export default {
           console.log(e);
         });
     },
+    getChickenData() {
+      axiosClient()
+        .get(`/chickens/${this.$route.params.tagCode}`)
+        .then((response) => {
+          this.chicken = response.data;
+          this.chicken.birthdate = this.formatDate(this.chicken.birthdate);
+          this.tags.push(this.chicken.Tag);
+        });
+    },
+    formatDate(date) {
+      return moment(date).format("DD/MM/YYYY");
+    },
     createChicken() {
       if (this.$refs.form.validate()) {
         axiosClient()
@@ -124,9 +149,27 @@ export default {
             birthdate: this.formatDateToSql(this.chicken.birthdate),
           })
           .then(() => {
+            this.success = true;
             this.updateTag();
           })
           .catch((e) => {
+            this.error = true;
+            console.log(e);
+          });
+      }
+    },
+    updateChicken() {
+      if (this.$refs.form.validate()) {
+        axiosClient()
+          .put(`/chickens/edit/${this.chicken.id}`, {
+            ...this.chicken,
+            birthdate: this.formatDateToSql(this.chicken.birthdate),
+          })
+          .then(() => {
+            this.success = true;
+          })
+          .catch((e) => {
+            this.error = true;
             console.log(e);
           });
       }
@@ -138,6 +181,7 @@ export default {
         await axiosClient().put(`/tags/set-tag-status/${tag_code}`, {
           is_using: true,
         });
+        this.$router.push('/reports')
       } catch (e) {
         console.error(e);
       }

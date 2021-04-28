@@ -1,39 +1,9 @@
 <template>
   <v-container fluid>
-    <v-row>
-      <v-col cols="12" sm="6">
-        <v-menu
-          ref="menu"
-          v-model="menu"
-          :close-on-content-click="false"
-          :return-value.sync="dates"
-          transition="scale-transition"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-combobox
-              v-model="dates"
-              multiple
-              chips
-              small-chips
-              label="Intervalo"
-              prepend-icon="mdi-calendar"
-              readonly
-              v-bind="attrs"
-              v-on="on"
-            ></v-combobox>
-          </template>
-          <v-date-picker v-model="dates" multiple no-title scrollable locale="pt-br">
-            <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="menu = false"> Cancelar </v-btn>
-            <v-btn text color="primary" @click="changeDates()">
-              OK
-            </v-btn>
-          </v-date-picker>
-        </v-menu>
-      </v-col>
-    </v-row>
+    <DatesSelect
+      @onChangeDate="changeDate"
+      @onChangePeriodType="changePeriodType"
+    />
     <v-row justify-end>
       <v-col>
         <v-card>
@@ -43,6 +13,9 @@
               type="temperature"
               title="Temperatura"
               color="rgba(255, 0, 56, 0.60)"
+              :startDate="startDate"
+              :endDate="endDate"
+              :periodType="periodType"
             />
           </v-card-subtitle>
         </v-card>
@@ -57,6 +30,9 @@
               type="air_humidity"
               title="Umidade"
               color="rgba(1, 116, 188, 0.50)"
+              :startDate="startDate"
+              :endDate="endDate"
+              :periodType="periodType"
             />
           </v-card-subtitle>
         </v-card>
@@ -69,6 +45,9 @@
               type="light"
               title="Luminosidade"
               color="rgba(188, 141, 1, 0.50)"
+              :startDate="startDate"
+              :endDate="endDate"
+              :periodType="periodType"
             />
           </v-card-subtitle>
         </v-card>
@@ -79,23 +58,32 @@
 
 <script>
 import EnvironmentalChart from "../../components/Charts/EnvironmentalChart";
+import DatesSelect from "../../components/DatesSelect";
 export default {
   name: "SensorsReport",
   components: {
     EnvironmentalChart,
+    DatesSelect,
   },
   data() {
     return {
-      dates: null,
-      menu: false
-    }
+      startDate: null,
+      endDate: null,
+      periodType: "daily_avg",
+    };
   },
   methods: {
-    changeDates() {
-      this.$refs.menu.save(this.dates)
-      console.log(this.dates)
-    }
-  }
+    changeDate(date, type) {
+      if (type == "startDate") {
+        this.startDate = date;
+      } else if (type == "endDate") {
+        this.endDate = date;
+      }
+    },
+    changePeriodType(periodType) {
+      this.periodType = periodType;
+    },
+  },
 };
 </script>
 

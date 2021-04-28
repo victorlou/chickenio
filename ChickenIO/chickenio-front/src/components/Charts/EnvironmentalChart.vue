@@ -1,6 +1,10 @@
 <template>
   <v-container v-if="this.chartdata.datasets[0].data">
-    <LineChart :chartdata="chartdata" :options="options"></LineChart>
+    <LineChart
+      ref="chart"
+      :chartdata="chartdata"
+      :options="options"
+    ></LineChart>
   </v-container>
 </template>
 
@@ -15,17 +19,23 @@ export default {
   },
   props: {
     type: {
-      type: String
+      type: String,
     },
     title: {
-      type: String
+      type: String,
     },
     color: {
-      type: String
+      type: String,
     },
-    dates: {
-      type: Array
-    }
+    startDate: {
+      type: String,
+    },
+    endDate: {
+      type: String,
+    },
+    periodType: {
+      type: String,
+    },
   },
   data() {
     return {
@@ -52,17 +62,32 @@ export default {
       },
     };
   },
+  watch: {
+    startDate() {
+      if (this.endDate) this.getData();
+    },
+    endDate() {
+      if (this.startDate) this.getData();
+    },
+    periodType() {
+      this.getData();
+    },
+  },
   mounted() {
     this.getData();
   },
   methods: {
     async getData() {
       try {
+        const filter = `?start_date=${this.startDate}&end_date=${this.endDate}&period_type=${this.periodType}`;
         const { data } = await axiosClient().get(
-          `/environmental-log/${this.type}`
+          `/environmental-log/${this.type}${filter}`
         );
-        this.chartdata.datasets[0].data = data.avg;
+        this.chartdata.datasets[0].data = data.values;
         this.chartdata.labels = data.timestamp;
+        if (this.$refs.chart) {
+          this.$refs.chart.renderChart(this.chartdata, this.options);
+        }
       } catch (e) {
         console.error(e);
       }

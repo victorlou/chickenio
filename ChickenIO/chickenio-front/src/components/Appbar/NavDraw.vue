@@ -16,9 +16,7 @@
 
     <template v-slot:append>
       <div class="pa-2">
-        <router-link to="/login">
-          <v-btn class="white black--text" block> Logout </v-btn>
-        </router-link>
+        <v-btn class="white black--text" @click="logout" block> Sair </v-btn>
       </div>
     </template>
   </v-navigation-drawer>
@@ -39,6 +37,12 @@ export default {
       drawer: true,
     };
   },
+  methods: {
+    logout() {
+      localStorage.removeItem('token')
+      this.$router.push('/login')
+    }
+  }
 };
 </script>
 

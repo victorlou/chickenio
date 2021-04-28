@@ -34,25 +34,7 @@ export default {
   },
   data() {
     return {
-      chicken: {
-        name: "Gesicleide",
-        rfidTag: "123456789",
-        birthdate: "01/04/2020",
-        currentWeight: "3",
-      },
-      chickenReport: {
-        averageFoodWeight: "300",
-      },
-      chartdata: {
-        labels: ["January", "February"],
-        datasets: [
-          {
-            label: "Data One",
-            backgroundColor: "#f87979",
-            data: [40, 20],
-          },
-        ],
-      },
+      chicken: null,
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -60,9 +42,8 @@ export default {
     };
   },
   methods: {
-    onSelectedChicken(id) {
-      console.log(id); // debug
-      this.$router.push({ path: "/chickenreport/" + id });
+    onSelectedChicken(tagCode) {
+      this.$router.push({ path: "/chickenreport/" + tagCode });
     },
   },
 };

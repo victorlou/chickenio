@@ -12,13 +12,23 @@ const RegisterChicken = () => import(/* webpackHuckName: "dashboard" */ '../view
 const ChickenReport = () => import(/* webpackHuckName: "dashboard" */ '../views/DashboardContent/ChickenReport')
 const Dashboard = () => import(/* webpackHuckName: "dashboard" */ '../views/Dashboard')
 
+function verifyAuth(to, from, next) {
+    const token = localStorage.getItem('token')
+    if (!token) {
+        next('/login')
+    } else {
+        next()
+    }
+}
+
 const routes = [
     {
         path: '/',
         alias: ['/Home', '/index'],
         name: 'Home',
         component: Home,
-        redirect: "/login"
+        redirect: "/login",
+        beforeEnter: verifyAuth
     },
     {
         path: '/login',
@@ -28,15 +38,15 @@ const routes = [
     {
         path: "/dashboard",
         component: Dashboard,
+        beforeEnter: verifyAuth,
         children: [
-
             {
                 path: "/reports",
                 name: "reports",
                 component: Reports
             },
             {
-                path: "/chickenreport/:id",
+                path: "/chickenreport/:tagCode",
                 name: "chickenreport",
                 component: ChickenReport
             },

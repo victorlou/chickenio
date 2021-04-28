@@ -1,57 +1,66 @@
 <template>
-  <v-container>
-<!--    <LineChart v-if="loaded" :chartdata="chartdata" :options="options"></LineChart>-->
-    <LineChart :chartdata="chartdata" :options="options"></LineChart>
+  <v-container v-if="chartdata.datasets[0].data">
+    <LineChart ref="chart" :chartdata="chartdata" :options="options"></LineChart>
   </v-container>
 </template>
 
 <script>
-import LineChart from './LineChart.js'
+import LineChart from "./LineChart.js";
 
 export default {
   name: "WeightHistoryChart",
   components: {
-    LineChart
+    LineChart,
+  },
+  props: {
+    data: Object,
   },
   data() {
     return {
       chartdata: {
-        labels: [
-          "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020", "20/03/2020"
-        ],
+        labels: [],
         datasets: [
           {
-            label: "Weight",
-            data: [2.8, 2.7, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.0, 3.0],
+            label: "Peso Médio (g)",
+            data: null,
             backgroundColor: "transparent",
             borderColor: "rgba(1, 116, 188, 0.50)",
-            pointBackgroundColor: "rgba(171, 71, 188, 1)"
-          }
-        ]
+            pointBackgroundColor: "rgba(171, 71, 188, 1)",
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         title: {
           display: true,
-          text: "Weight History"
-        }
-      }
-    }
+          position: "top",
+          text: [],
+          fontSize: 14,
+        },
+      },
+    };
   },
-  // async mounted() {
-  //   this.loaded = false
-  //   try {
-  //     const {userlist} = await fetch('/api/userlist')
-  //     this.chartdata = userlist
-  //     this.loaded = true
-  //   } catch (e) {
-  //     console.error(e)
-  //   }
-  // }
-}
+  mounted() {
+    this.updateData();
+  },
+  methods: {
+    updateData() {
+      this.chartdata.datasets[0].data = this.data.values;
+      this.chartdata.labels = this.data.timestamp;
+      this.options.title.text[0] = `Peso Atual: ${this.data.currentWeight.weight.toFixed(
+        1
+      )} gramas`;
+    },
+  },
+  watch: {
+    data() {
+      this.updateData();
+      this.$refs.chart.renderChart(this.chartdata, this.options);
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 </style>

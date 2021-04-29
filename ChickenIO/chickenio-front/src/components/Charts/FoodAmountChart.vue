@@ -33,6 +33,7 @@ export default {
             borderColor: "rgba(63, 81, 181, 0.80)",
             pointBackgroundColor: "rgba(171, 71, 188, 1)",
             borderDash: [5, 5],
+            tension: 0
           },
           {
             label: "Quantidade ingerida (g)",
@@ -40,6 +41,7 @@ export default {
             backgroundColor: "transparent",
             borderColor: "rgba(75, 175, 80, 0.80)",
             pointBackgroundColor: "rgba(171, 71, 188, 1)",
+            tension: 0
           },
           {
             label: "Quantidade restante (g)",

@@ -4,8 +4,17 @@
       @onChangeDate="changeDate"
       @onChangePeriodType="changePeriodType"
     />
+
     <v-row justify-end>
-      <v-col>
+      <v-col lg="6">
+        <v-card>
+          <v-card-subtitle>
+            <img :src="imageUrl" alt="" width="100%" />
+            <span>Foto registrada no dia 24/04/2020 20:23</span>
+          </v-card-subtitle>
+        </v-card>
+      </v-col>
+      <v-col lg="6">
         <v-card>
           <v-card-title> Temperatura </v-card-title>
           <v-card-subtitle>
@@ -59,6 +68,9 @@
 <script>
 import EnvironmentalChart from "../../components/Charts/EnvironmentalChart";
 import DatesSelect from "../../components/DatesSelect";
+import firebase from "firebase/app";
+import "firebase/storage";
+
 export default {
   name: "SensorsReport",
   components: {
@@ -70,9 +82,25 @@ export default {
       startDate: null,
       endDate: null,
       periodType: "daily_avg",
+      imageUrl: null,
     };
   },
+  mounted() {
+    this.getPoultryFarmImage();
+  },
   methods: {
+    getPoultryFarmImage() {
+      var storage = firebase.storage().ref("surveillance");
+      storage
+        .getDownloadURL()
+        .then((url) => {
+          this.imageUrl = url;
+        })
+        .catch(function (error) {
+          console.log(error);
+          // Handle any errors
+        });
+    },
     changeDate(date, type) {
       if (type == "startDate") {
         this.startDate = date;

@@ -26,6 +26,7 @@ export default {
             backgroundColor: "transparent",
             borderColor: "rgba(1, 116, 188, 0.50)",
             pointBackgroundColor: "rgba(171, 71, 188, 1)",
+            tension: 0
           },
         ],
       },

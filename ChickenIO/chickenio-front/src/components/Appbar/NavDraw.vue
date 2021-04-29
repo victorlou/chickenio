@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       items: [
-        { title: "Dashboard", icon: "mdi-view-dashboard", link: "/dashboard" },
+        // { title: "Dashboard", icon: "mdi-view-dashboard", link: "/dashboard" },
         { title: "Galinhas", icon: "mdi-view-dashboard", link: "/reports" },
         { title: "Dados Ambientais", icon: "mdi-leak", link: "/sensors" },
         { title: "Sobre", icon: "mdi-help-box", link: "/about" },

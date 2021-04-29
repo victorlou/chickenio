@@ -72,6 +72,7 @@ export default {
               display: true,
               position: "right",
               ticks: {
+                stepSize: 1,
                 beginAtZero: true,
               },
               grid: {

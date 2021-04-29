@@ -102,7 +102,7 @@ export default {
         });
     },
     formatDate(date) {
-      return moment(date).format("DD/MM/YYYY");
+      return moment(date.value).format("DD/MM/YYYY");
     },
     filterText(value, search) {
       return (

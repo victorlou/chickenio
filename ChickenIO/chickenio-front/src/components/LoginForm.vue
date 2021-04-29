@@ -73,7 +73,7 @@ export default {
           .then((response) => {
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("user", JSON.stringify(response.data.user));
-            this.$router.push("/dashboard");
+            this.$router.push("/reports");
           })
           .catch((e) => {
             localStorage.removeItem('token')
